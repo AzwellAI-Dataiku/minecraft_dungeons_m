@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://carrow001"]
+
+[ext_resource type="Script" path="res://scripts/combat/Projectile.gd" id="1_proj"]
+[ext_resource type="Script" path="res://scripts/combat/Hitbox.gd"     id="2_hitbox"]
+
+[sub_resource type="CylinderMesh" id="ShaftMesh"]
+top_radius    = 0.035
+bottom_radius = 0.035
+height        = 0.75
+
+[sub_resource type="StandardMaterial3D" id="ShaftMat"]
+albedo_color = Color(0.55, 0.35, 0.10, 1)
+
+[sub_resource type="SphereShape3D" id="HitShape"]
+radius = 0.18
+
+[node name="ArrowProjectile" type="Node3D"]
+script = ExtResource("1_proj")
+speed   = 22.0
+lifetime = 3.0
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+rotation_degrees = Vector3(90.0, 0.0, 0.0)
+mesh = SubResource("ShaftMesh")
+surface_material_override/0 = SubResource("ShaftMat")
+
+[node name="Hitbox" type="Area3D" parent="."]
+collision_layer = 8
+collision_mask  = 4
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("HitShape")

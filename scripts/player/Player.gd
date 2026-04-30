@@ -9,20 +9,27 @@ const TURN_SPEED   := 16.0
 @onready var pivot: Node3D = $Pivot
 
 var _camera: Camera3D
+var _combat: Node   # PlayerCombat — optional, resolved after ready
 
 func _ready() -> void:
 	add_to_group(&"player")
-	# wait one frame so the viewport camera is registered
 	await get_tree().process_frame
 	_camera = get_viewport().get_camera_3d()
+	_combat = get_node_or_null("PlayerCombat")
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 
-	var input := InputManager.get_move_vector()
-	var dir   := _world_dir_from_input(input)
+	# PlayerCombat overrides XZ velocity during roll
+	var rolling := _combat != null and _combat.is_rolling
+	if not rolling:
+		_apply_movement(delta)
 
+	move_and_slide()
+
+func _apply_movement(delta: float) -> void:
+	var dir := get_world_dir_from_input(InputManager.get_move_vector())
 	if dir.length_squared() > 0.001:
 		velocity.x = move_toward(velocity.x, dir.x * MOVE_SPEED, ACCELERATION * delta)
 		velocity.z = move_toward(velocity.z, dir.z * MOVE_SPEED, ACCELERATION * delta)
@@ -31,10 +38,12 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
 
-	move_and_slide()
+# ── Public helpers used by PlayerCombat ──────────────────────────────────────
 
-# Project camera's flat forward/right axes onto the XZ plane, then combine with input.
-func _world_dir_from_input(input: Vector2) -> Vector3:
+func get_facing_direction() -> Vector3:
+	return -pivot.global_transform.basis.z.normalized()
+
+func get_world_dir_from_input(input: Vector2) -> Vector3:
 	if input.length_squared() < 0.01 or _camera == null:
 		return Vector3.ZERO
 	var b       := _camera.global_transform.basis

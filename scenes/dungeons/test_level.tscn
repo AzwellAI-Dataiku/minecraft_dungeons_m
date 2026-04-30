@@ -1,76 +1,77 @@
-[gd_scene load_steps=6 format=3 uid="uid://ctestlevel001"]
+[gd_scene load_steps=7 format=3 uid="uid://ctestlevel001"]
 
-[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn"    id="2_hud"]
-[ext_resource type="Script"      path="res://scripts/player/CameraRig.gd" id="3_camrig"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn"          id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn"                  id="2_hud"]
+[ext_resource type="Script"      path="res://scripts/player/CameraRig.gd"         id="3_camrig"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/training_dummy.tscn"  id="4_dummy"]
 
 [sub_resource type="StandardMaterial3D" id="FloorMat"]
 albedo_color = Color(0.28, 0.46, 0.28, 1)
-roughness = 0.9
+roughness    = 0.9
 
 [sub_resource type="StandardMaterial3D" id="WallMat"]
 albedo_color = Color(0.48, 0.40, 0.30, 1)
-roughness = 0.85
+roughness    = 0.85
 
 [node name="TestLevel" type="Node3D"]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-50.0, -30.0, 0.0)
-light_energy = 1.4
-shadow_enabled = true
+light_energy     = 1.4
+shadow_enabled   = true
 
 [node name="Floor" type="CSGBox3D" parent="."]
-position = Vector3(0.0, -0.5, 0.0)
-size = Vector3(40.0, 1.0, 40.0)
-use_collision = true
+position          = Vector3(0.0, -0.5, 0.0)
+size              = Vector3(40.0, 1.0, 40.0)
+use_collision     = true
 material_override = SubResource("FloorMat")
 
 [node name="WallNorth" type="CSGBox3D" parent="."]
-position = Vector3(0.0, 1.5, -20.5)
-size = Vector3(41.0, 4.0, 1.0)
-use_collision = true
+position          = Vector3(0.0, 1.5, -20.5)
+size              = Vector3(41.0, 4.0, 1.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="WallSouth" type="CSGBox3D" parent="."]
-position = Vector3(0.0, 1.5, 20.5)
-size = Vector3(41.0, 4.0, 1.0)
-use_collision = true
+position          = Vector3(0.0, 1.5, 20.5)
+size              = Vector3(41.0, 4.0, 1.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="WallEast" type="CSGBox3D" parent="."]
-position = Vector3(20.5, 1.5, 0.0)
-size = Vector3(1.0, 4.0, 41.0)
-use_collision = true
+position          = Vector3(20.5, 1.5, 0.0)
+size              = Vector3(1.0, 4.0, 41.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="WallWest" type="CSGBox3D" parent="."]
-position = Vector3(-20.5, 1.5, 0.0)
-size = Vector3(1.0, 4.0, 41.0)
-use_collision = true
+position          = Vector3(-20.5, 1.5, 0.0)
+size              = Vector3(1.0, 4.0, 41.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="PillarA" type="CSGBox3D" parent="."]
-position = Vector3(-8.0, 1.0, -8.0)
-size = Vector3(2.0, 3.0, 2.0)
-use_collision = true
+position          = Vector3(-8.0, 1.0, -8.0)
+size              = Vector3(2.0, 3.0, 2.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="PillarB" type="CSGBox3D" parent="."]
-position = Vector3(8.0, 1.0, -8.0)
-size = Vector3(2.0, 3.0, 2.0)
-use_collision = true
+position          = Vector3(8.0, 1.0, -8.0)
+size              = Vector3(2.0, 3.0, 2.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="PillarC" type="CSGBox3D" parent="."]
-position = Vector3(-8.0, 1.0, 8.0)
-size = Vector3(2.0, 3.0, 2.0)
-use_collision = true
+position          = Vector3(-8.0, 1.0, 8.0)
+size              = Vector3(2.0, 3.0, 2.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="PillarD" type="CSGBox3D" parent="."]
-position = Vector3(8.0, 1.0, 8.0)
-size = Vector3(2.0, 3.0, 2.0)
-use_collision = true
+position          = Vector3(8.0, 1.0, 8.0)
+size              = Vector3(2.0, 3.0, 2.0)
+use_collision     = true
 material_override = SubResource("WallMat")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
@@ -80,11 +81,28 @@ position = Vector3(0.0, 0.9, 0.0)
 script = ExtResource("3_camrig")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
-position = Vector3(0.0, 18.0, 14.0)
+position         = Vector3(0.0, 18.0, 14.0)
 rotation_degrees = Vector3(-52.0, 0.0, 0.0)
-projection = 1
-size = 16.0
-near = 0.1
-far = 200.0
+projection       = 1
+size             = 16.0
+near             = 0.1
+far              = 200.0
 
 [node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="Dummies" type="Node3D" parent="."]
+
+[node name="Dummy0" parent="Dummies" instance=ExtResource("4_dummy")]
+position = Vector3(5.0, 0.0, -3.0)
+
+[node name="Dummy1" parent="Dummies" instance=ExtResource("4_dummy")]
+position = Vector3(-5.0, 0.0, -3.0)
+
+[node name="Dummy2" parent="Dummies" instance=ExtResource("4_dummy")]
+position = Vector3(0.0, 0.0, -6.0)
+
+[node name="Dummy3" parent="Dummies" instance=ExtResource("4_dummy")]
+position = Vector3(4.0, 0.0, 4.0)
+
+[node name="Dummy4" parent="Dummies" instance=ExtResource("4_dummy")]
+position = Vector3(-4.0, 0.0, 4.0)
