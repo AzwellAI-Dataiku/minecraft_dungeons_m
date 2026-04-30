@@ -14,8 +14,7 @@ func _ready() -> void:
 	EventBus.ui_toast.emit("Bootstrap scene loaded.", 2.0)
 
 func _on_play_pressed() -> void:
-	# Placeholder: hub scene not yet implemented (M7).
-	status_label.text = "Hub scene not yet implemented.\nThis is the M0 bootstrap scene."
+	get_tree().change_scene_to_file("res://scenes/dungeons/test_level.tscn")
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
