@@ -48,7 +48,12 @@ theme_override_font_sizes/font_size = 18
 [node name="PlayButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(280, 64)
 layout_mode = 2
-text = "PLAY"
+text = "TEST ARENA"
+
+[node name="DungeonButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(280, 64)
+layout_mode = 2
+text = "PROCEDURAL DUNGEON"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(280, 64)

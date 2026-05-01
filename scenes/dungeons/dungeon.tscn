@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3 uid="uid://cdungeon001"]
+
+[ext_resource type="Script"      path="res://scripts/dungeons/Dungeon.gd" id="1_dungeon"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn"   id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn"          id="3_hud"]
+[ext_resource type="Script"      path="res://scripts/player/CameraRig.gd" id="4_camrig"]
+
+[node name="Dungeon" type="Node3D"]
+script = ExtResource("1_dungeon")
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50.0, -30.0, 0.0)
+light_energy     = 1.4
+shadow_enabled   = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Geometry" type="Node3D" parent="."]
+
+[node name="Entities" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(0.0, 0.9, 0.0)
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("4_camrig")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+position         = Vector3(0.0, 18.0, 14.0)
+rotation_degrees = Vector3(-52.0, 0.0, 0.0)
+projection       = 1
+size             = 16.0
+near             = 0.1
+far              = 220.0
+
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
