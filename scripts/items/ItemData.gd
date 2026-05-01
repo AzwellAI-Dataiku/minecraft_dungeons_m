@@ -15,6 +15,10 @@ enum Rarity { COMMON, RARE, UNIQUE }
 @export var cooldown:     float      = 0.0   # artifact cooldown seconds
 @export var mesh_color:   Color      = Color(0.8, 0.8, 0.8, 1)
 
+## Per-instance enchantment slots. Empty on the .tres template; populated by
+## EnchantmentDB.roll_item_instance() when the item drops in-world.
+@export var slots:        Array[EnchantmentSlot] = []
+
 func get_enchant_slots() -> int:
 	match rarity:
 		Rarity.COMMON: return 1

@@ -14,6 +14,8 @@ signal item_dropped(item_data: Resource, world_position: Vector3)
 signal item_picked_up(item_data: Resource)
 signal item_equipped(item_data: Resource, slot: String)
 signal item_salvaged(item_data: Resource, refund: int)
+signal enchantment_chosen(item_data: Resource, slot_index: int)
+signal player_xp_gained(amount: int, xp: int, xp_to_next: int)
 
 signal dungeon_generation_started(seed: int, theme: StringName)
 signal dungeon_generation_finished(room_count: int)

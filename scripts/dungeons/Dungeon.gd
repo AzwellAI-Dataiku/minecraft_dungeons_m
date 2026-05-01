@@ -44,6 +44,9 @@ func _ready() -> void:
 
 	_place_player_at_spawn()
 	_spawn_entities()
+	var entry_heal := EnchantmentDB.get_dungeon_entry_heal()
+	if entry_heal > 0.0 and player.has_method("heal"):
+		player.heal(entry_heal)
 	EventBus.player_spawned.emit(player)
 	EventBus.dungeon_generation_finished.emit(_builder.rooms.size())
 
@@ -115,9 +118,10 @@ func _spawn_bonus_chest(center: Vector3) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _seed ^ 0xBEEFCAFE ^ int(center.x) ^ int(center.z)
 	var drops: Array[ItemData] = (COMMON_LOOT as LootTable).roll(rng)
-	for item in drops:
+	for template in drops:
 		var offset := Vector3(rng.randf_range(-1.5, 1.5), 0.0, rng.randf_range(-1.5, 1.5))
-		_spawn_pickup(item, Vector3(center.x + offset.x, 0.0, center.z + offset.z))
+		var instance := EnchantmentDB.roll_item_instance(template)
+		_spawn_pickup(instance, Vector3(center.x + offset.x, 0.0, center.z + offset.z))
 
 func _spawn_pickup(item: ItemData, pos: Vector3) -> void:
 	var pickup := ITEM_PICKUP.instantiate()

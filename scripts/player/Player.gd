@@ -34,20 +34,27 @@ func _physics_process(delta: float) -> void:
 
 func _apply_movement(delta: float) -> void:
 	var dir := get_world_dir_from_input(InputManager.get_move_vector())
+	var speed := MOVE_SPEED * EnchantmentDB.get_move_speed_multiplier()
 	if dir.length_squared() > 0.001:
-		velocity.x = move_toward(velocity.x, dir.x * MOVE_SPEED, ACCELERATION * delta)
-		velocity.z = move_toward(velocity.z, dir.z * MOVE_SPEED, ACCELERATION * delta)
+		velocity.x = move_toward(velocity.x, dir.x * speed, ACCELERATION * delta)
+		velocity.z = move_toward(velocity.z, dir.z * speed, ACCELERATION * delta)
 		pivot.rotation.y = lerp_angle(pivot.rotation.y, atan2(dir.x, dir.z), TURN_SPEED * delta)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
 
 func _on_damage(packet: DamagePacket) -> void:
+	EnchantmentDB.apply_incoming_damage(packet)
 	health = maxf(health - packet.amount, 0.0)
 	EventBus.player_health_changed.emit(health, max_health)
 	InputManager.haptic_feedback(0.7, 40)
 	if health <= 0.0:
 		EventBus.player_died.emit(self)
+
+func heal(amount: float) -> void:
+	if amount <= 0.0 or health <= 0.0: return
+	health = minf(health + amount, max_health)
+	EventBus.player_health_changed.emit(health, max_health)
 
 # ── Public helpers ────────────────────────────────────────────────────────────
 

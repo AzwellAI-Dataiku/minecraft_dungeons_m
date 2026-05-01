@@ -1,5 +1,7 @@
 extends Control
 
+const ENCH_SCREEN_SCENE := preload("res://scenes/ui/enchantment_screen.tscn")
+
 @onready var _close_btn:     Button        = $PanelOverlay/Panel/VBox/Header/CloseBtn
 @onready var _power_label:   Label         = $PanelOverlay/Panel/VBox/Header/PowerLabel
 @onready var _emerald_label: Label         = $PanelOverlay/Panel/VBox/EmeraldLabel
@@ -7,15 +9,19 @@ extends Control
 @onready var _slots_row:     HBoxContainer = $PanelOverlay/Panel/VBox/SlotsRow
 @onready var _bag_grid:      GridContainer = $PanelOverlay/Panel/VBox/BagGrid
 
-var _slot_buttons: Dictionary = {}
+var _slot_buttons:    Dictionary = {}
+var _ench_screen:     Node       = null
 
 func _ready() -> void:
 	_close_btn.pressed.connect(func(): visible = false)
 	_build_slot_buttons()
+	_ench_screen = ENCH_SCREEN_SCENE.instantiate()
+	add_child(_ench_screen)
 	_refresh()
 	EventBus.item_picked_up.connect(_on_inventory_changed)
 	EventBus.item_equipped.connect(_on_inventory_changed)
 	EventBus.item_salvaged.connect(_on_inventory_changed)
+	EventBus.enchantment_chosen.connect(_on_inventory_changed)
 	visible = false
 
 func show_screen() -> void:
@@ -68,8 +74,10 @@ func _refresh() -> void:
 	_power_label.text   = "PL %d" % Inventory.get_power_level()
 	_bag_label.text     = "BAG  (%d / %d)" % [Inventory.bag.size(), Inventory.BAG_MAX]
 
-func _on_slot_pressed(_slot: String) -> void:
-	pass  # M6: show enchantments / unequip flow
+func _on_slot_pressed(slot: String) -> void:
+	var it := Inventory.get_equipped(slot)
+	if it != null:
+		_ench_screen.show_for(it)
 
 func _on_bag_pressed(idx: int) -> void:
 	if idx >= Inventory.bag.size(): return

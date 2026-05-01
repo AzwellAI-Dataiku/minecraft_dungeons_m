@@ -38,6 +38,7 @@ func _ready() -> void:
 	_player      = get_parent() as CharacterBody3D
 	_melee_hitbox = _player.get_node("Pivot/MeleeHitbox") as Hitbox
 	_hurtbox      = _player.get_node("Hurtbox") as Hurtbox
+	_melee_hitbox.hit_registered.connect(_on_melee_hit)
 	InputManager.virtual_action_pressed.connect(_handle_action)
 
 func _process(delta: float) -> void:
@@ -79,9 +80,22 @@ func _start_swing() -> void:
 	var packet := DamagePacket.make(MELEE_DAMAGE[_combo_idx], _player)
 	packet.knockback_dir   = _player.get_facing_direction()
 	packet.knockback_force = 3.0
+	EnchantmentDB.apply_outgoing_damage(packet)
 	_melee_hitbox.activate(packet)
 	_state       = State.SWINGING
 	_state_timer = MELEE_HIT_TIME[_combo_idx]
+	if EnchantmentDB.roll_extra_attack():
+		_queue_echo_swing(MELEE_HIT_TIME[_combo_idx] + 0.05)
+
+func _queue_echo_swing(delay: float) -> void:
+	var t := get_tree().create_timer(delay)
+	t.timeout.connect(func() -> void:
+		if is_rolling: return
+		if _state == State.IDLE or _state == State.CHAIN_WINDOW:
+			_start_swing())
+
+func _on_melee_hit(_h: Hurtbox, packet: DamagePacket) -> void:
+	EnchantmentDB.on_damage_dealt(_player, packet)
 
 func _tick_combo_state(_delta: float) -> void:
 	if _state_timer <= 0.0:
@@ -112,14 +126,20 @@ func _try_ranged() -> void:
 		return
 	_ranged_cooldown = RANGED_COOLDOWN
 	_shoot()
+	if EnchantmentDB.roll_extra_attack():
+		var t := get_tree().create_timer(0.10)
+		t.timeout.connect(_shoot)
 
 func _shoot() -> void:
+	var pkt := DamagePacket.make(RANGED_DAMAGE, _player)
+	EnchantmentDB.apply_outgoing_damage(pkt)
 	var proj := projectile_scene.instantiate() as Projectile
 	_player.get_parent().add_child(proj)
 	proj.global_position = _player.global_position + Vector3(0.0, 1.0, 0.0)
 	proj.direction       = _player.get_facing_direction()
 	proj.source          = _player
-	proj.damage          = RANGED_DAMAGE
+	proj.damage          = pkt.amount
+	proj.is_crit         = pkt.is_crit
 
 # ── Roll ──────────────────────────────────────────────────────────────────────
 func _try_roll() -> void:

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnchantmentData" load_steps=2 format=3 uid="uid://cenchswift01"]
+
+[ext_resource type="Script" path="res://scripts/items/EnchantmentData.gd" id="1_ench"]
+
+[resource]
+script           = ExtResource("1_ench")
+id               = &"swiftness"
+display_name     = "Swiftness"
+description      = "Increases movement speed."
+effect_id        = &"swiftness"
+values_per_level = Array[float]([0.08, 0.15, 0.25])
+applicable_types = Array[int]([2])
+color            = Color(0.4, 1.0, 0.85, 1)

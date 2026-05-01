@@ -206,5 +206,6 @@ func _drop_loot() -> void:
 		^ int(global_position.x * 137.0) \
 		^ int(global_position.z * 239.0)
 	var drops := data.loot_table.roll(rng)
-	for item in drops:
-		EventBus.item_dropped.emit(item, global_position)
+	for template in drops:
+		var instance := EnchantmentDB.roll_item_instance(template)
+		EventBus.item_dropped.emit(instance, global_position)

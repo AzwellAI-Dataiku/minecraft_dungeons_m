@@ -23,6 +23,6 @@ weight = 1.0
 
 [resource]
 script         = ExtResource("1_loot")
-entries        = [SubResource("e1"), SubResource("e2"), SubResource("e3")]
+entries        = Array[Resource]([SubResource("e1"), SubResource("e2"), SubResource("e3")])
 drop_count_min = 1
 drop_count_max = 1
