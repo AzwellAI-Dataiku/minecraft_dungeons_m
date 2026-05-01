@@ -22,3 +22,4 @@ enum AttackType { MELEE, RANGED, CHARGE }
 @export var power_level:         int         = 1
 @export var mesh_color:          Color       = Color(0.7, 0.2, 0.2)
 @export var projectile_scene:    PackedScene              # ranged only
+@export var loot_table:          LootTable                # optional — nil = no drop

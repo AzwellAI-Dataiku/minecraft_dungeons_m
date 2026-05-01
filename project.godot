@@ -20,6 +20,7 @@ GameManager="*res://scripts/autoload/GameManager.gd"
 SaveManager="*res://scripts/autoload/SaveManager.gd"
 AudioManager="*res://scripts/autoload/AudioManager.gd"
 InputManager="*res://scripts/autoload/InputManager.gd"
+Inventory="*res://scripts/items/Inventory.gd"
 
 [display]
 

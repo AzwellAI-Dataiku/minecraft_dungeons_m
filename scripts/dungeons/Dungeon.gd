@@ -13,6 +13,8 @@ const SKELETON_DATA    := preload("res://data/enemies/skeleton_data.tres")
 const VINDICATOR_DATA  := preload("res://data/enemies/vindicator_data.tres")
 
 const EXIT_PORTAL      := preload("res://scenes/dungeons/exit_portal.tscn")
+const ITEM_PICKUP      := preload("res://scenes/items/item_pickup.tscn")
+const COMMON_LOOT      := preload("res://data/loot_tables/common_loot.tres")
 
 @onready var nav_region:     NavigationRegion3D = $NavigationRegion3D
 @onready var geometry_root:  Node3D             = $Geometry
@@ -47,6 +49,7 @@ func _ready() -> void:
 
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.enemy_died.connect(_on_enemy_died)
+	EventBus.item_dropped.connect(_on_item_dropped)
 
 # ── Navigation ────────────────────────────────────────────────────────────────
 
@@ -83,7 +86,7 @@ func _spawn_entities() -> void:
 			RoomData.Type.BOSS:
 				_spawn_boss(center)
 			RoomData.Type.BONUS:
-				_spawn_bonus_marker(center)
+				_spawn_bonus_chest(center)
 			_:
 				pass
 
@@ -108,19 +111,19 @@ func _spawn_enemy(scene: PackedScene, data: Resource, pos: Vector3) -> Node3D:
 	(e as Node3D).global_position = Vector3(pos.x, 0.9, pos.z)
 	return e
 
-func _spawn_bonus_marker(center: Vector3) -> void:
-	# Treasure visual placeholder until M5 loot drops.
-	var marker := CSGBox3D.new()
-	marker.size = Vector3(1.0, 1.0, 1.0)
-	marker.use_collision = true
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 0.85, 0.2, 1)
-	mat.emission_enabled = true
-	mat.emission = Color(1.0, 0.6, 0.0, 1)
-	mat.emission_energy_multiplier = 1.5
-	marker.material_override = mat
-	entities_root.add_child(marker)
-	marker.global_position = Vector3(center.x, 0.5, center.z)
+func _spawn_bonus_chest(center: Vector3) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = _seed ^ 0xBEEFCAFE ^ int(center.x) ^ int(center.z)
+	var drops: Array[ItemData] = (COMMON_LOOT as LootTable).roll(rng)
+	for item in drops:
+		var offset := Vector3(rng.randf_range(-1.5, 1.5), 0.0, rng.randf_range(-1.5, 1.5))
+		_spawn_pickup(item, Vector3(center.x + offset.x, 0.0, center.z + offset.z))
+
+func _spawn_pickup(item: ItemData, pos: Vector3) -> void:
+	var pickup := ITEM_PICKUP.instantiate()
+	entities_root.add_child(pickup)
+	pickup.global_position = Vector3(pos.x, 0.6, pos.z)
+	(pickup as ItemPickup).setup(item)
 
 # ── Boss death → portal ───────────────────────────────────────────────────────
 
@@ -136,6 +139,9 @@ func _on_enemy_died(enemy: Node, _killer: Node) -> void:
 			(p as Node3D).global_position = RoomBuilder.room_world_center(room.cell)
 			EventBus.ui_toast.emit("The exit portal opens…", 2.5)
 			return
+
+func _on_item_dropped(item_data: Resource, world_pos: Vector3) -> void:
+	_spawn_pickup(item_data as ItemData, world_pos)
 
 func _on_player_died(_p: Node) -> void:
 	EventBus.ui_toast.emit("You died — restarting…", 2.0)

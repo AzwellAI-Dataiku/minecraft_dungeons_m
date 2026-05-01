@@ -194,6 +194,17 @@ func _on_damage(packet: DamagePacket) -> void:
 
 func _die() -> void:
 	EventBus.enemy_died.emit(self, null)
+	_drop_loot()
 	var tw := create_tween()
 	tw.tween_property(_pivot, "scale", Vector3.ZERO, 0.25).set_ease(Tween.EASE_IN)
 	tw.tween_callback(queue_free)
+
+func _drop_loot() -> void:
+	if data == null or data.loot_table == null: return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(Time.get_unix_time_from_system()) \
+		^ int(global_position.x * 137.0) \
+		^ int(global_position.z * 239.0)
+	var drops := data.loot_table.roll(rng)
+	for item in drops:
+		EventBus.item_dropped.emit(item, global_position)

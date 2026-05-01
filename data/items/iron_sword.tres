@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3 uid="uid://cironswrd001"]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.gd" id="1_itemdata"]
+
+[resource]
+script       = ExtResource("1_itemdata")
+id           = &"iron_sword"
+display_name = "Iron Sword"
+description  = "A sturdy iron blade."
+type         = 0
+rarity       = 0
+power_level  = 5
+base_damage  = 14.0
+base_defense = 0.0
+cooldown     = 0.0
+mesh_color   = Color(0.70, 0.72, 0.78, 1)
