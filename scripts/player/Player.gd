@@ -6,26 +6,30 @@ const FRICTION     := 22.0
 const GRAVITY      := 24.0
 const TURN_SPEED   := 16.0
 
+@export var max_health: float = 100.0
+
 @onready var pivot: Node3D = $Pivot
 
+var health : float
 var _camera: Camera3D
 var _combat: Node   # PlayerCombat — optional, resolved after ready
 
 func _ready() -> void:
 	add_to_group(&"player")
+	health = max_health
 	await get_tree().process_frame
 	_camera = get_viewport().get_camera_3d()
 	_combat = get_node_or_null("PlayerCombat")
+	$Hurtbox.took_damage.connect(_on_damage)
+	EventBus.player_spawned.emit(self)
+	EventBus.player_health_changed.emit(health, max_health)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
-
-	# PlayerCombat overrides XZ velocity during roll
 	var rolling := _combat != null and _combat.is_rolling
 	if not rolling:
 		_apply_movement(delta)
-
 	move_and_slide()
 
 func _apply_movement(delta: float) -> void:
@@ -38,7 +42,14 @@ func _apply_movement(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, FRICTION * delta)
 		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
 
-# ── Public helpers used by PlayerCombat ──────────────────────────────────────
+func _on_damage(packet: DamagePacket) -> void:
+	health = maxf(health - packet.amount, 0.0)
+	EventBus.player_health_changed.emit(health, max_health)
+	InputManager.haptic_feedback(0.7, 40)
+	if health <= 0.0:
+		EventBus.player_died.emit(self)
+
+# ── Public helpers ────────────────────────────────────────────────────────────
 
 func get_facing_direction() -> Vector3:
 	return -pivot.global_transform.basis.z.normalized()

@@ -1,0 +1,46 @@
+[gd_scene load_steps=7 format=3 uid="uid://cskeleton001"]
+
+[ext_resource type="Script"   path="res://scripts/enemies/Enemy.gd"  id="1_enemy"]
+[ext_resource type="Script"   path="res://scripts/combat/Hurtbox.gd" id="2_hurtbox"]
+
+[sub_resource type="BoxMesh" id="BodyMesh"]
+size = Vector3(0.7, 1.5, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="BodyMat"]
+albedo_color = Color(0.88, 0.88, 0.82, 1)
+roughness    = 0.75
+
+[sub_resource type="CapsuleShape3D" id="ColShape"]
+radius = 0.32
+height = 1.5
+
+[sub_resource type="CapsuleShape3D" id="HurtShape"]
+radius = 0.38
+height = 1.5
+
+[node name="Skeleton" type="CharacterBody3D"]
+script = ExtResource("1_enemy")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Pivot"]
+position = Vector3(0.0, 0.75, 0.0)
+mesh     = SubResource("BodyMesh")
+surface_material_override/0 = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0.0, 0.75, 0.0)
+shape    = SubResource("ColShape")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance   = 0.5
+target_desired_distance = 0.8
+
+[node name="Hurtbox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask  = 8
+script = ExtResource("2_hurtbox")
+
+[node name="HurtboxShape" type="CollisionShape3D" parent="Hurtbox"]
+position = Vector3(0.0, 0.75, 0.0)
+shape    = SubResource("HurtShape")
