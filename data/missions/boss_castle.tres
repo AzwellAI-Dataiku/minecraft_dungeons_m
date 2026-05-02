@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3 uid="uid://cmissionbos01"]
+
+[ext_resource type="Script" path="res://scripts/missions/MissionData.gd" id="1_msn"]
+
+[resource]
+script         = ExtResource("1_msn")
+id             = &"boss_castle"
+display_name   = "Iron Vault"
+description    = "Deep halls guarding restless captains."
+difficulty     = 3
+recommended_pl = 14
+theme          = &"crypt"
+room_count     = 10
+seed_offset    = 2048
+emerald_reward = 100
+xp_reward      = 300

@@ -20,9 +20,10 @@ GameManager="*res://scripts/autoload/GameManager.gd"
 SaveManager="*res://scripts/autoload/SaveManager.gd"
 AudioManager="*res://scripts/autoload/AudioManager.gd"
 InputManager="*res://scripts/autoload/InputManager.gd"
+ItemDB="*res://scripts/autoload/ItemDB.gd"
+EnchantmentDB="*res://scripts/autoload/EnchantmentDB.gd"
 Inventory="*res://scripts/items/Inventory.gd"
 PlayerProgression="*res://scripts/autoload/PlayerProgression.gd"
-EnchantmentDB="*res://scripts/autoload/EnchantmentDB.gd"
 
 [display]
 

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3 uid="uid://cmissioncrypt01"]
+
+[ext_resource type="Script" path="res://scripts/missions/MissionData.gd" id="1_msn"]
+
+[resource]
+script         = ExtResource("1_msn")
+id             = &"crypt_run"
+display_name   = "Crypt Run"
+description    = "A short trek through dusty stone corridors."
+difficulty     = 1
+recommended_pl = 4
+theme          = &"crypt"
+room_count     = 6
+seed_offset    = 0
+emerald_reward = 25
+xp_reward      = 80

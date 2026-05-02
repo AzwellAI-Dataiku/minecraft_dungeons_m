@@ -1,6 +1,6 @@
 extends Node
 
-const SAVE_PATH := "user://save.json"
+const SAVE_PATH    := "user://save.json"
 const SAVE_VERSION := 1
 
 var data: Dictionary = _default_data()
@@ -24,7 +24,10 @@ func _default_data() -> Dictionary:
 		},
 	}
 
+# ── Save / Load ───────────────────────────────────────────────────────────────
+
 func save() -> void:
+	_snapshot_active_character()
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		EventBus.save_failed.emit("cannot_open_for_write")
@@ -55,9 +58,57 @@ func _migrate(loaded: Dictionary) -> Dictionary:
 	var v: int = int(loaded.get("version", 0))
 	if v == SAVE_VERSION:
 		return loaded
-	# Future migrations between save versions go here.
 	loaded["version"] = SAVE_VERSION
 	return loaded
+
+# ── Character snapshot / restore ──────────────────────────────────────────────
+
+func has_save() -> bool:
+	var chars: Array = data.get("characters", [])
+	if chars.is_empty():
+		return false
+	var ch: Variant = chars[0]
+	return typeof(ch) == TYPE_DICTIONARY and not (ch as Dictionary).is_empty()
+
+func load_active_character() -> bool:
+	if not has_save():
+		return false
+	var idx: int = int(data.get("active_character_index", 0))
+	var chars: Array = data["characters"]
+	if idx < 0 or idx >= chars.size():
+		return false
+	var ch: Dictionary = chars[idx]
+	if ch.has("inventory"):
+		Inventory.deserialize(ch["inventory"])
+	if ch.has("progression"):
+		PlayerProgression.deserialize(ch["progression"])
+	return true
+
+func start_fresh_character(name: String = "Hero") -> void:
+	Inventory.clear()
+	PlayerProgression.clear()
+	data["active_character_index"] = 0
+	data["characters"] = [{
+		"name":        name,
+		"created_at":  int(Time.get_unix_time_from_system()),
+		"inventory":   Inventory.serialize(),
+		"progression": PlayerProgression.serialize(),
+	}]
+	save()
+
+func _snapshot_active_character() -> void:
+	if data.get("characters", []).is_empty():
+		return
+	var idx: int = int(data.get("active_character_index", 0))
+	var chars: Array = data["characters"]
+	if idx < 0 or idx >= chars.size():
+		return
+	var ch: Dictionary = chars[idx]
+	ch["inventory"]   = Inventory.serialize()
+	ch["progression"] = PlayerProgression.serialize()
+	chars[idx] = ch
+
+# ── Settings (used by M8) ─────────────────────────────────────────────────────
 
 func get_setting(key: String, default_value: Variant = null) -> Variant:
 	return data.get("settings", {}).get(key, default_value)

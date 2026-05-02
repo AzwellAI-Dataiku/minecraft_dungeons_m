@@ -15,25 +15,35 @@ const VINDICATOR_DATA  := preload("res://data/enemies/vindicator_data.tres")
 const EXIT_PORTAL      := preload("res://scenes/dungeons/exit_portal.tscn")
 const ITEM_PICKUP      := preload("res://scenes/items/item_pickup.tscn")
 const COMMON_LOOT      := preload("res://data/loot_tables/common_loot.tres")
+const SUMMARY_SCENE    := preload("res://scenes/ui/mission_summary.tscn")
 
 @onready var nav_region:     NavigationRegion3D = $NavigationRegion3D
 @onready var geometry_root:  Node3D             = $Geometry
 @onready var entities_root:  Node3D             = $Entities
 @onready var player:         Node3D             = $Player
 
-var _builder:      DungeonBuilder
-var _room_builder: RoomBuilder
-var _seed:         int
-var _boss_node:    Node = null
+var _builder:        DungeonBuilder
+var _room_builder:   RoomBuilder
+var _seed:           int
+var _boss_node:      Node = null
+var _summary_shown:  bool = false
 
 func _ready() -> void:
 	_seed = GameManager.run_seed if GameManager.run_seed != 0 else int(Time.get_unix_time_from_system())
 	GameManager.run_seed = _seed
-	var theme: int = _seed % 2
+	# Mission > seed-mod for theme; fall back to seed parity if no active mission
+	var mission := GameManager.active_mission as MissionData
+	var theme: int = 0
+	var rooms_n: int = 8
+	if mission != null:
+		theme   = 1 if mission.theme == &"desert" else 0
+		rooms_n = mission.room_count
+	else:
+		theme = _seed % 2
 	EventBus.dungeon_generation_started.emit(_seed, &"crypt" if theme == 0 else &"desert")
 
 	_builder = DungeonBuilder.new()
-	_builder.generate(_seed, 8)
+	_builder.generate(_seed, rooms_n)
 
 	_room_builder = RoomBuilder.new()
 	_room_builder.build(_builder.rooms, _builder.corridors, geometry_root, theme)
@@ -53,6 +63,7 @@ func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.enemy_died.connect(_on_enemy_died)
 	EventBus.item_dropped.connect(_on_item_dropped)
+	EventBus.dungeon_cleared.connect(_on_dungeon_cleared)
 
 # ── Navigation ────────────────────────────────────────────────────────────────
 
@@ -147,7 +158,22 @@ func _on_enemy_died(enemy: Node, _killer: Node) -> void:
 func _on_item_dropped(item_data: Resource, world_pos: Vector3) -> void:
 	_spawn_pickup(item_data as ItemData, world_pos)
 
+func _on_dungeon_cleared(_mission_id: StringName, _stats: Dictionary) -> void:
+	if _summary_shown: return
+	_summary_shown = true
+	GameManager.grant_mission_clear_rewards()
+	_show_summary(true)
+
 func _on_player_died(_p: Node) -> void:
-	EventBus.ui_toast.emit("You died — restarting…", 2.0)
-	await get_tree().create_timer(2.0).timeout
-	get_tree().reload_current_scene()
+	if _summary_shown: return
+	_summary_shown = true
+	EventBus.ui_toast.emit("You died…", 1.5)
+	await get_tree().create_timer(1.5).timeout
+	_show_summary(false)
+
+func _show_summary(cleared: bool) -> void:
+	get_tree().paused = true
+	var summary := SUMMARY_SCENE.instantiate()
+	summary.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(summary)
+	(summary as Node).call("show_for", cleared, GameManager.run_stats)

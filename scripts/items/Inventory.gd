@@ -6,7 +6,6 @@ const BAG_MAX := 20
 var equipped:       Dictionary          = {}
 var bag:            Array[ItemData]     = []
 var emeralds:       int                 = 0
-var enchant_points: int                 = 0
 
 func _ready() -> void:
 	for s in SLOTS:
@@ -70,7 +69,7 @@ func get_slot_for_item(item: ItemData) -> String:
 	return "melee"
 
 func serialize() -> Dictionary:
-	var out := { "emeralds": emeralds, "enchant_points": enchant_points, "equipped": {}, "bag": [] }
+	var out := { "emeralds": emeralds, "equipped": {}, "bag": [] }
 	for slot in SLOTS:
 		var it := equipped.get(slot) as ItemData
 		out["equipped"][slot] = str(it.id) if it != null else ""
@@ -78,12 +77,26 @@ func serialize() -> Dictionary:
 		out["bag"].append(str((it as ItemData).id))
 	return out
 
+func deserialize(dict: Dictionary) -> void:
+	clear()
+	emeralds = int(dict.get("emeralds", 0))
+	var equipped_data: Dictionary = dict.get("equipped", {})
+	for slot in SLOTS:
+		var id_str := str(equipped_data.get(slot, ""))
+		if id_str.is_empty(): continue
+		var template := ItemDB.get_template(StringName(id_str))
+		if template == null: continue
+		equipped[slot] = EnchantmentDB.roll_item_instance(template)
+	for id_str in dict.get("bag", []):
+		var template := ItemDB.get_template(StringName(str(id_str)))
+		if template != null:
+			bag.append(EnchantmentDB.roll_item_instance(template))
+
 func clear() -> void:
 	for s in SLOTS:
 		equipped[s] = null
 	bag.clear()
-	emeralds       = 0
-	enchant_points = 0
+	emeralds = 0
 
 # ── Private ───────────────────────────────────────────────────────────────────
 

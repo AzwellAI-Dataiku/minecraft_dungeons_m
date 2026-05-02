@@ -39,6 +39,15 @@ func clear() -> void:
 	enchant_points = 0
 	_emit_changed()
 
+func serialize() -> Dictionary:
+	return { "level": level, "xp": xp, "enchant_points": enchant_points }
+
+func deserialize(dict: Dictionary) -> void:
+	level          = int(dict.get("level", 1))
+	xp             = int(dict.get("xp", 0))
+	enchant_points = int(dict.get("enchant_points", 0))
+	_emit_changed()
+
 # ── Internal ──────────────────────────────────────────────────────────────────
 
 func _level_up() -> void:
