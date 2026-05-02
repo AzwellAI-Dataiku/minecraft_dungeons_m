@@ -7,6 +7,8 @@ extends CanvasLayer
 @onready var level_label:   Label       = $TopBar/LevelLabel
 @onready var inv_screen:    Control     = $InventoryScreen
 @onready var inv_button:    Button      = $TopBar/InvButton
+@onready var pause_button:  Button      = $TopBar/PauseButton
+@onready var pause_menu:    Control     = $PauseMenu
 
 func _ready() -> void:
 	EventBus.player_health_changed.connect(_on_health)
@@ -15,12 +17,15 @@ func _ready() -> void:
 	EventBus.item_salvaged.connect(_on_item_changed)
 	EventBus.item_equipped.connect(_on_item_changed)
 	inv_button.pressed.connect(_on_inv_pressed)
+	pause_button.pressed.connect(_on_pause_pressed)
 	_refresh_emeralds()
 	_refresh_level()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_inventory"):
 		_on_inv_pressed()
+	elif event.is_action_pressed(&"pause"):
+		_on_pause_pressed()
 
 func _on_health(current: float, maximum: float) -> void:
 	health_bar.max_value = maximum
@@ -34,6 +39,12 @@ func _on_inv_pressed() -> void:
 		inv_screen.visible = false
 	else:
 		inv_screen.show_screen()
+
+func _on_pause_pressed() -> void:
+	if pause_menu.visible:
+		pause_menu.close()
+	else:
+		pause_menu.open()
 
 func _on_item_changed(_a = null, _b = null) -> void:
 	_refresh_emeralds()

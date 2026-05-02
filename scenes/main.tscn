@@ -60,6 +60,11 @@ custom_minimum_size = Vector2(280, 64)
 layout_mode = 2
 text = "TEST ARENA"
 
+[node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(280, 64)
+layout_mode = 2
+text = "SETTINGS"
+
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 custom_minimum_size = Vector2(280, 64)
 layout_mode = 2

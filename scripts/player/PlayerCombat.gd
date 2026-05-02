@@ -77,6 +77,7 @@ func _start_swing() -> void:
 		_combo_idx = mini(_combo_idx + 1, 2)
 	else:
 		_combo_idx = 0
+	InputManager.haptic_feedback(0.4, 18)
 	var packet := DamagePacket.make(MELEE_DAMAGE[_combo_idx], _player)
 	packet.knockback_dir   = _player.get_facing_direction()
 	packet.knockback_force = 3.0
