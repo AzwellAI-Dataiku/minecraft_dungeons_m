@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://chud001"]
+[gd_scene load_steps=7 format=3 uid="uid://chud001"]
 
 [ext_resource type="Script"      path="res://scripts/ui/VirtualJoystick.gd"        id="1_joystick"]
 [ext_resource type="Script"      path="res://scripts/ui/ActionButton.gd"           id="2_actionbtn"]
 [ext_resource type="Script"      path="res://scripts/ui/Hud.gd"                    id="3_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/inventory_screen.tscn"      id="4_inv"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn"            id="5_pause"]
+[ext_resource type="Script"      path="res://scripts/ui/TouchRouter.gd"            id="6_router"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("3_hud")
@@ -184,6 +185,12 @@ theme_override_font_sizes/font_size = 64
 modulate      = Color(1.0, 0.62, 0.20, 1)
 script        = ExtResource("2_actionbtn")
 action_name   = &"attack_melee"
+
+[node name="TouchRouter" type="Control" parent="."]
+anchor_right  = 1.0
+anchor_bottom = 1.0
+mouse_filter  = 2
+script        = ExtResource("6_router")
 
 [node name="InventoryScreen" parent="." instance=ExtResource("4_inv")]
 

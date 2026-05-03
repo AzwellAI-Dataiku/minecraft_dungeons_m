@@ -1,35 +1,24 @@
 extends Button
 
-## Touch-friendly action button with direct multi-touch support.
-## Uses _input + InputEventScreenTouch so a second finger (e.g. right hand
-## while joystick is held by left) still registers correctly.
+## Visual-only on-screen action button.
+##
+## All touch handling is done by TouchRouter (a sibling under the HUD), which
+## hit-tests against this button's get_global_rect() and dispatches to
+## InputManager.press_virtual_action / release_virtual_action.
+##
+## We intentionally don't override _input() here: in Godot 4.3 the per-button
+## _input callback inside a CanvasLayer was unreliable for second-finger touch
+## events on Android, leading to total input dropouts. Centralising in the
+## router fixes that.
+##
+## We also disable mouse-event consumption (mouse_filter = IGNORE) so the
+## router sees the touch in _input() before any GUI auto-consumption.
 
 @export var action_name: StringName = &""
 
-var _touch_index := -1
-
 func _ready() -> void:
 	focus_mode = FOCUS_NONE
-
-func _input(event: InputEvent) -> void:
-	if not action_name:
-		return
-	if event is InputEventScreenTouch:
-		if event.pressed and _touch_index == -1 and get_global_rect().has_point(event.position):
-			_touch_index = event.index
-			modulate.a = 0.55
-			InputManager.press_virtual_action(action_name)
-			InputManager.haptic_feedback(0.4, 20)
-		elif not event.pressed and event.index == _touch_index:
-			_touch_index = -1
-			modulate.a = 1.0
-			InputManager.release_virtual_action(action_name)
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if _touch_index != -1:
-			return
-		if event.pressed and get_global_rect().has_point(event.position):
-			modulate.a = 0.55
-			InputManager.press_virtual_action(action_name)
-		elif not event.pressed:
-			modulate.a = 1.0
-			InputManager.release_virtual_action(action_name)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Don't toggle pressed-state on mouse, the router handles that visually.
+	toggle_mode = false
+	disabled = false
