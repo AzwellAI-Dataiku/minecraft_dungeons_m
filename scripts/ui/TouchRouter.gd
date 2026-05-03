@@ -35,6 +35,10 @@ var _joy_root:   Control = null
 var _joy_base:   Control = null
 var _joy_knob:   Control = null
 var _joy_center: Vector2 = Vector2.ZERO
+# Computed on _resolve_nodes from button positions — used for left-zone test
+# without needing the viewport rect (which is unreliable in headless tests).
+var _left_zone_max_x: float = 640.0
+const TOPBAR_HEIGHT := 90.0
 
 func _ready() -> void:
 	# We use _input(); make sure mouse_filter doesn't accidentally swallow
@@ -75,8 +79,18 @@ func _resolve_nodes() -> void:
 		else:
 			_joy_center = Vector2.ZERO
 		_reset_knob()
+	# Pre-compute the left-zone right edge from the leftmost action button,
+	# so _is_left_zone doesn't need get_viewport_rect (which fails in
+	# headless tests and on scenes that haven't completed their tree setup).
+	var leftmost := INF
+	for ctl in _zones.values():
+		if ctl is Control:
+			leftmost = min(leftmost, (ctl as Control).get_global_rect().position.x)
+	if leftmost != INF:
+		_left_zone_max_x = leftmost - 24.0  # small margin
 	if DEBUG_PRINT:
-		print("[TouchRouter] resolved zones=", _zones.keys(), " joy=", _joy_root)
+		print("[TouchRouter] resolved zones=", _zones.keys(),
+		      " joy=", _joy_root, " left_max_x=", _left_zone_max_x)
 
 static func _button_name_for(action: StringName) -> String:
 	match action:
@@ -165,10 +179,10 @@ func _zone_at(pos: Vector2) -> StringName:
 	return &""
 
 func _is_left_zone(pos: Vector2) -> bool:
-	# Left half of the screen is reserved for the joystick — but exclude
-	# the top bar so taps on the BAG/PAUSE buttons aren't swallowed.
-	var vp := get_viewport_rect().size
-	return pos.x < vp.x * 0.5 and pos.y > 90.0
+	# Anything left of the action-button column and below the top bar is
+	# joystick territory. Computed without get_viewport_rect so this works
+	# during tree construction and in headless tests.
+	return pos.x < _left_zone_max_x and pos.y > TOPBAR_HEIGHT
 
 # ── Joystick visuals + virtual move ──────────────────────────────────────────
 
