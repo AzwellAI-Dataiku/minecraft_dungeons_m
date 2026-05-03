@@ -54,6 +54,7 @@ func _ready() -> void:
 
 	_place_player_at_spawn()
 	_spawn_entities()
+	_add_torch_lights()
 	var entry_heal := EnchantmentDB.get_dungeon_entry_heal()
 	if entry_heal > 0.0 and player.has_method("heal"):
 		player.heal(entry_heal)
@@ -124,6 +125,18 @@ func _spawn_enemy(scene: PackedScene, data: Resource, pos: Vector3) -> Node3D:
 	entities_root.add_child(e)
 	(e as Node3D).global_position = Vector3(pos.x, 0.9, pos.z)
 	return e
+
+func _add_torch_lights() -> void:
+	for room in _builder.rooms:
+		var center := RoomBuilder.room_world_center(room.cell)
+		var light  := OmniLight3D.new()
+		light.light_color      = Color(1.0, 0.52, 0.14, 1)
+		light.light_energy     = 2.4
+		light.omni_range       = 8.0
+		light.omni_attenuation = 1.4
+		light.shadow_enabled   = false
+		geometry_root.add_child(light)
+		light.global_position  = Vector3(center.x, 2.4, center.z)
 
 func _spawn_bonus_chest(center: Vector3) -> void:
 	var rng := RandomNumberGenerator.new()

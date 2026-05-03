@@ -31,3 +31,4 @@ signal save_completed
 signal save_failed(reason: String)
 
 signal ui_toast(message: String, duration: float)
+signal camera_shake(intensity: float)

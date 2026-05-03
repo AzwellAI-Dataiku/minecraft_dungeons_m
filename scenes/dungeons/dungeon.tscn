@@ -1,9 +1,18 @@
-[gd_scene load_steps=5 format=3 uid="uid://cdungeon001"]
+[gd_scene load_steps=6 format=3 uid="uid://cdungeon001"]
 
 [ext_resource type="Script"      path="res://scripts/dungeons/Dungeon.gd" id="1_dungeon"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn"   id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn"          id="3_hud"]
 [ext_resource type="Script"      path="res://scripts/player/CameraRig.gd" id="4_camrig"]
+
+[sub_resource type="Environment" id="DungeonEnv"]
+background_mode          = 1
+background_color         = Color(0.04, 0.04, 0.10, 1)
+ambient_light_source     = 2
+ambient_light_color      = Color(0.38, 0.42, 0.60, 1)
+ambient_light_energy     = 0.58
+tonemap_mode             = 3
+tonemap_exposure         = 1.1
 
 [node name="Dungeon" type="Node3D"]
 script = ExtResource("1_dungeon")
@@ -16,6 +25,7 @@ light_energy     = 1.4
 shadow_enabled   = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("DungeonEnv")
 
 [node name="Geometry" type="Node3D" parent="."]
 

@@ -19,12 +19,19 @@ var _state_timer := 0.0
 var _player      : Node3D
 var _path_timer  := 0.0
 var _hitbox      : Hitbox   # melee/charge only — may be null
+var _mesh_mat    : StandardMaterial3D = null
+var _base_color  : Color
 
 func _ready() -> void:
 	hp = data.max_health if data else 20.0
 	add_to_group(&"enemies")
 	_hurtbox.took_damage.connect(_on_damage)
 	_hitbox = get_node_or_null("Pivot/EnemyHitbox") as Hitbox
+	var mi := _pivot.get_node_or_null("Mesh") as MeshInstance3D
+	if mi:
+		_mesh_mat = mi.get_surface_override_material(0) as StandardMaterial3D
+		if _mesh_mat:
+			_base_color = _mesh_mat.albedo_color
 	await get_tree().process_frame
 	var pl := get_tree().get_nodes_in_group(&"player")
 	if not pl.is_empty():
@@ -185,12 +192,20 @@ func _on_damage(packet: DamagePacket) -> void:
 	if _state == State.DEAD: return
 	hp = maxf(hp - packet.amount, 0.0)
 	EventBus.enemy_damaged.emit(self, packet.amount, packet.source)
+	_flash_hit()
 	if hp <= 0.0:
 		_to(State.DEAD)
 		return
 	velocity = packet.knockback_dir * packet.knockback_force * 4.0
 	velocity.y = 1.5
 	_to(State.HURT)
+
+func _flash_hit() -> void:
+	if _mesh_mat == null:
+		return
+	var tw := create_tween()
+	tw.tween_property(_mesh_mat, "albedo_color", Color(1.0, 1.0, 1.0), 0.04)
+	tw.tween_property(_mesh_mat, "albedo_color", _base_color, 0.22)
 
 func _die() -> void:
 	EventBus.enemy_died.emit(self, null)

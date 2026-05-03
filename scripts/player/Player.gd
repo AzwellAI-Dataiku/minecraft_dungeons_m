@@ -48,8 +48,22 @@ func _on_damage(packet: DamagePacket) -> void:
 	health = maxf(health - packet.amount, 0.0)
 	EventBus.player_health_changed.emit(health, max_health)
 	InputManager.haptic_feedback(0.7, 40)
+	EventBus.camera_shake.emit(0.38)
+	_flash_damage()
 	if health <= 0.0:
 		EventBus.player_died.emit(self)
+
+func _flash_damage() -> void:
+	var cl   := CanvasLayer.new()
+	var rect := ColorRect.new()
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	rect.color        = Color(0.9, 0.05, 0.05, 0.28)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cl.add_child(rect)
+	add_child(cl)
+	var tw := create_tween()
+	tw.tween_property(rect, "color", Color(0.9, 0.05, 0.05, 0.0), 0.45)
+	tw.tween_callback(cl.queue_free)
 
 func heal(amount: float) -> void:
 	if amount <= 0.0 or health <= 0.0: return
