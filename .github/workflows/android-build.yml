@@ -17,6 +17,10 @@ env:
   EXPORT_PRESET: 'Android Debug'
   ARTIFACT_NAME: 'voxel_dungeon_debug.apk'
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-android:
     name: Build & export APK
@@ -41,7 +45,6 @@ jobs:
             platform-tools
             platforms;android-34
             build-tools;34.0.0
-            ndk;23.2.8568313
             cmdline-tools;latest
 
       # ── Godot binary + export templates (cached) ───────────────────────
@@ -52,11 +55,12 @@ jobs:
           path: |
             ~/godot
             ~/.local/share/godot/export_templates
-          key: godot-${{ env.GODOT_VERSION }}-stable-linux
+          key: godot-${{ env.GODOT_VERSION }}-stable-linux-v2
 
       - name: Download Godot ${{ env.GODOT_VERSION }} (Linux x86_64)
         if: steps.godot-cache.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
           mkdir -p ~/godot
           wget -q -O godot.zip \
             "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
@@ -68,16 +72,19 @@ jobs:
       - name: Download Godot Android export templates
         if: steps.godot-cache.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
           wget -q -O templates.tpz \
             "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
           mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
           unzip -q templates.tpz
           mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          echo "--- export templates installed ---"
           ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
 
       # ── Debug keystore (regenerated each run; debug only) ──────────────
       - name: Generate Android debug keystore
         run: |
+          set -euo pipefail
           mkdir -p ~/.android
           keytool -keyalg RSA -genkeypair -alias androiddebugkey \
             -keypass android \
@@ -89,6 +96,7 @@ jobs:
       # ── Editor settings: tell Godot where SDKs and keystore live ───────
       - name: Configure Godot editor settings
         run: |
+          set -euo pipefail
           mkdir -p ~/.config/godot
           cat > ~/.config/godot/editor_settings-4.tres <<EOF
           [gd_resource type="EditorSettings" format=3]
@@ -103,55 +111,59 @@ jobs:
           echo "--- editor_settings-4.tres ---"
           cat ~/.config/godot/editor_settings-4.tres
 
-      # ── Install Android build template into res://android/build ───────
-      # export_presets.cfg has gradle_build/use_gradle_build=true, which
-      # requires the Gradle source template under res://android/build.
-      - name: Install Android Gradle build template
+      # ── Force prebuilt template path (no Gradle in CI) ─────────────────
+      # Godot 4 CLI can't reliably set up the Android Gradle source template
+      # the way the editor's "Install Android Build Template" menu does.
+      # For CI debug builds we flip use_gradle_build → false; the prebuilt
+      # template produces a working signed-debug APK without gradle.
+      - name: Disable gradle_build for CI export
         run: |
-          rm -rf android/build
-          mkdir -p android/build
-          unzip -oq ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/android_source.zip -d android/build/
-          # marker so Godot doesn't import gradle files as game resources
-          touch android/build/.gdignore
-          ls android/build/ | head -20
+          set -euo pipefail
+          sed -i 's|gradle_build/use_gradle_build=true|gradle_build/use_gradle_build=false|g' export_presets.cfg
+          echo "--- gradle_build settings now: ---"
+          grep gradle_build export_presets.cfg || true
 
-      # ── Cache Gradle for faster subsequent builds ──────────────────────
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-godot-${{ env.GODOT_VERSION }}
-          restore-keys: gradle-godot-
-
-      # ── Import resources (twice; first pass discovers, second confirms) ─
+      # ── Import resources ────────────────────────────────────────────────
       - name: Import project resources
         run: |
-          ~/godot/godot --headless --import 2>&1 | tail -40 || true
-          ~/godot/godot --headless --import 2>&1 | tail -40 || true
+          set -euo pipefail
+          # First pass discovers; second pass resolves anything that
+          # depended on first-pass-imported resources.
+          ~/godot/godot --headless --import 2>&1 | tee import-1.log
+          ~/godot/godot --headless --import 2>&1 | tee import-2.log
+          echo "--- .godot/imported/ contents (first 30) ---"
+          ls -la .godot/imported 2>/dev/null | head -30 || echo "(no .godot/imported directory)"
 
-      # ── Export APK ──────────────────────────────────────────────────────
+      # ── Export APK (verbose, no swallowed exit code) ───────────────────
       - name: Export Android Debug APK
         run: |
+          set -euo pipefail
           mkdir -p exports
           ~/godot/godot --headless --verbose \
             --export-debug "${EXPORT_PRESET}" \
-            "exports/${ARTIFACT_NAME}" 2>&1 | tail -100
+            "exports/${ARTIFACT_NAME}" 2>&1 | tee export.log
+          echo "--- godot pipe status: ${PIPESTATUS[*]} ---"
 
-      # ── Verify & report ─────────────────────────────────────────────────
+      # ── Verify & report (always runs even on prior failure) ────────────
+      - name: List exports directory
+        if: always()
+        run: |
+          echo "--- exports/ ---"
+          ls -la exports/ || true
+          echo "--- last 50 lines of export.log ---"
+          tail -50 export.log 2>/dev/null || echo "(no export.log)"
+
       - name: Verify APK
         run: |
+          set -euo pipefail
           if [ ! -f "exports/${ARTIFACT_NAME}" ]; then
             echo "::error::APK was not produced at exports/${ARTIFACT_NAME}"
-            ls -la exports/ || true
             exit 1
           fi
-          ls -la exports/
-          echo "--- SHA256 ---"
-          sha256sum "exports/${ARTIFACT_NAME}"
           echo "--- size ---"
           du -h "exports/${ARTIFACT_NAME}"
+          echo "--- SHA256 ---"
+          sha256sum "exports/${ARTIFACT_NAME}"
 
       # ── Upload as build artifact (downloadable from Actions tab) ───────
       - name: Upload APK
@@ -161,3 +173,16 @@ jobs:
           path: exports/${{ env.ARTIFACT_NAME }}
           retention-days: 30
           if-no-files-found: error
+
+      # ── Always upload logs so failures are debuggable ──────────────────
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.sha }}
+          path: |
+            import-1.log
+            import-2.log
+            export.log
+          retention-days: 14
+          if-no-files-found: ignore
