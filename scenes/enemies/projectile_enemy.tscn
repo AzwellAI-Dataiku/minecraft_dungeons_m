@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://ceneproj001"]
+
+[ext_resource type="Script" path="res://scripts/combat/Projectile.gd" id="1_proj"]
+[ext_resource type="Script" path="res://scripts/combat/Hitbox.gd"     id="2_hitbox"]
+
+[sub_resource type="CylinderMesh" id="ShaftMesh"]
+top_radius    = 0.03
+bottom_radius = 0.03
+height        = 0.65
+
+[sub_resource type="StandardMaterial3D" id="ShaftMat"]
+albedo_color = Color(0.85, 0.85, 0.75, 1)
+
+[sub_resource type="SphereShape3D" id="HitShape"]
+radius = 0.16
+
+[node name="EnemyProjectile" type="Node3D"]
+script = ExtResource("1_proj")
+speed   = 14.0
+lifetime = 4.0
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+rotation_degrees = Vector3(90.0, 0.0, 0.0)
+mesh = SubResource("ShaftMesh")
+surface_material_override/0 = SubResource("ShaftMat")
+
+[node name="Hitbox" type="Area3D" parent="."]
+collision_layer = 16
+collision_mask  = 2
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("HitShape")

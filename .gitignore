@@ -1,0 +1,35 @@
+# Godot 4 standard ignores
+.godot/
+.import/
+*.translation
+
+# Editor / OS
+*.tmp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build outputs
+build/
+exports/
+*.apk
+*.aab
+*.aab.idsig
+*.keystore
+*.jks
+
+# Local secrets / signing config (never commit)
+android/debug.keystore
+android/release.keystore
+android/keystore.properties
+export_presets.local.cfg
+
+# Test artifacts
+.gut_editor_config.json
+
+# Asset source files (large) — keep originals outside repo
+assets/source/
+*.vox.bak

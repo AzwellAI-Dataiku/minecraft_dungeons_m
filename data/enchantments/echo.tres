@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnchantmentData" load_steps=2 format=3 uid="uid://cenchecho001"]
+
+[ext_resource type="Script" path="res://scripts/items/EnchantmentData.gd" id="1_ench"]
+
+[resource]
+script           = ExtResource("1_ench")
+id               = &"echo"
+display_name     = "Echo"
+description      = "Chance to repeat the attack instantly."
+effect_id        = &"echo"
+values_per_level = Array[float]([0.10, 0.18, 0.30])
+applicable_types = Array[int]([0, 1])
+color            = Color(0.55, 0.85, 1.0, 1)

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnchantmentData" load_steps=2 format=3 uid="uid://cenchsharp001"]
+
+[ext_resource type="Script" path="res://scripts/items/EnchantmentData.gd" id="1_ench"]
+
+[resource]
+script           = ExtResource("1_ench")
+id               = &"sharpness"
+display_name     = "Sharpness"
+description      = "Increases melee damage."
+effect_id        = &"sharpness"
+values_per_level = Array[float]([0.10, 0.18, 0.30])
+applicable_types = Array[int]([0])
+color            = Color(0.95, 0.85, 0.5, 1)

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3 uid="uid://dvindicator001"]
+
+[ext_resource type="Script"   path="res://scripts/enemies/EnemyData.gd"      id="1_data"]
+[ext_resource type="Resource" path="res://data/loot_tables/boss_loot.tres"    id="2_loot"]
+
+[resource]
+script                = ExtResource("1_data")
+id                    = &"vindicator"
+display_name          = "Vindicator"
+max_health            = 45.0
+move_speed            = 3.2
+attack_type           = 2
+attack_damage         = 18.0
+attack_range          = 6.0
+attack_duration       = 0.75
+attack_cooldown       = 2.5
+windup_duration       = 0.70
+preferred_range       = 6.0
+charge_speed          = 14.0
+detection_range       = 12.0
+lose_interest_range   = 20.0
+knockback_force       = 6.0
+xp_reward             = 20
+power_level           = 1
+mesh_color            = Color(0.18, 0.12, 0.55, 1)
+loot_table            = ExtResource("2_loot")

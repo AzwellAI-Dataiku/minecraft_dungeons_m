@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnchantmentData" load_steps=2 format=3 uid="uid://cenchrecov01"]
+
+[ext_resource type="Script" path="res://scripts/items/EnchantmentData.gd" id="1_ench"]
+
+[resource]
+script           = ExtResource("1_ench")
+id               = &"recovery"
+display_name     = "Recovery"
+description      = "Restores HP at the start of each dungeon."
+effect_id        = &"recovery"
+values_per_level = Array[float]([20.0, 35.0, 50.0])
+applicable_types = Array[int]([2])
+color            = Color(1.0, 0.5, 0.5, 1)

@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=3 uid="uid://cvindicator001"]
+
+[ext_resource type="Script"   path="res://scripts/enemies/Enemy.gd"  id="1_enemy"]
+[ext_resource type="Script"   path="res://scripts/combat/Hitbox.gd"  id="2_hitbox"]
+[ext_resource type="Script"   path="res://scripts/combat/Hurtbox.gd" id="3_hurtbox"]
+
+[sub_resource type="BoxMesh" id="BodyMesh"]
+size = Vector3(1.1, 1.8, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="BodyMat"]
+albedo_color = Color(0.18, 0.12, 0.55, 1)
+roughness    = 0.65
+
+[sub_resource type="CapsuleShape3D" id="ColShape"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="HitShape"]
+radius = 0.85
+
+[sub_resource type="CapsuleShape3D" id="HurtShape"]
+radius = 0.52
+height = 1.8
+
+[node name="Vindicator" type="CharacterBody3D"]
+script = ExtResource("1_enemy")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Mesh" type="MeshInstance3D" parent="Pivot"]
+position = Vector3(0.0, 0.9, 0.0)
+mesh     = SubResource("BodyMesh")
+surface_material_override/0 = SubResource("BodyMat")
+
+[node name="EnemyHitbox" type="Area3D" parent="Pivot"]
+position        = Vector3(0.0, 0.9, -0.9)
+collision_layer = 16
+collision_mask  = 2
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Pivot/EnemyHitbox"]
+shape = SubResource("HitShape")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0.0, 0.9, 0.0)
+shape    = SubResource("ColShape")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance   = 0.5
+target_desired_distance = 1.0
+
+[node name="Hurtbox" type="Area3D" parent="."]
+collision_layer = 4
+collision_mask  = 8
+script = ExtResource("3_hurtbox")
+
+[node name="HurtboxShape" type="CollisionShape3D" parent="Hurtbox"]
+position = Vector3(0.0, 0.9, 0.0)
+shape    = SubResource("HurtShape")

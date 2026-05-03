@@ -1,0 +1,212 @@
+name: Android Debug Build
+
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+    paths-ignore:
+      - 'README.md'
+      - 'android/README.md'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: '4.3'
+  EXPORT_PRESET: 'Android Debug'
+  ARTIFACT_NAME: 'voxel_dungeon_debug.apk'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-android:
+    name: Build & export APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── JDK & Android SDK ──────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
+            cmdline-tools;latest
+
+      # ── Godot binary + export templates (cached) ───────────────────────
+      - name: Cache Godot binary & templates
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-stable-linux-v2
+
+      - name: Download Godot ${{ env.GODOT_VERSION }} (Linux x86_64)
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/godot
+          wget -q -O godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+          ~/godot/godot --version
+
+      - name: Download Godot Android export templates
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          wget -q -O templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          unzip -q templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          echo "--- export templates installed ---"
+          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      # ── Debug keystore (regenerated each run; debug only) ──────────────
+      - name: Generate Android debug keystore
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.android
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey \
+            -keypass android \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -validity 9999 -deststoretype pkcs12
+
+      # ── Editor settings: tell Godot where SDKs and keystore live ───────
+      - name: Configure Godot editor settings
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.config/godot
+          cat > ~/.config/godot/editor_settings-4.tres <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "${ANDROID_HOME}"
+          export/android/java_sdk_path = "${JAVA_HOME}"
+          export/android/debug_keystore = "${HOME}/.android/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          echo "--- editor_settings-4.tres ---"
+          cat ~/.config/godot/editor_settings-4.tres
+
+      # ── Force prebuilt template path (no Gradle in CI) ─────────────────
+      # Godot 4 CLI can't reliably set up the Android Gradle source template
+      # the way the editor's "Install Android Build Template" menu does.
+      # For CI debug builds we flip use_gradle_build → false; the prebuilt
+      # template produces a working signed-debug APK without gradle.
+      - name: Disable gradle_build for CI export
+        run: |
+          set -euo pipefail
+          # min_sdk / target_sdk overrides are only valid when
+          # use_gradle_build is true; clear them too or Godot will
+          # refuse to export with "Min/Target SDK can only be
+          # overridden when Use Gradle Build is enabled".
+          sed -i \
+            -e 's|gradle_build/use_gradle_build=true|gradle_build/use_gradle_build=false|g' \
+            -e 's|gradle_build/min_sdk="28"|gradle_build/min_sdk=""|g' \
+            -e 's|gradle_build/target_sdk="34"|gradle_build/target_sdk=""|g' \
+            export_presets.cfg
+          echo "--- gradle_build settings now: ---"
+          grep gradle_build export_presets.cfg || true
+
+      # ── Import resources ────────────────────────────────────────────────
+      - name: Import project resources
+        run: |
+          set -euo pipefail
+          # First pass discovers; second pass resolves anything that
+          # depended on first-pass-imported resources.
+          ~/godot/godot --headless --import 2>&1 | tee import-1.log
+          ~/godot/godot --headless --import 2>&1 | tee import-2.log
+          echo "--- .godot/imported/ contents (first 30) ---"
+          ls -la .godot/imported 2>/dev/null | head -30 || echo "(no .godot/imported directory)"
+
+      # ── Run unit tests (headless) ───────────────────────────────────────
+      # Phase 0/1 logic + Phase 9.1 input regression tests. Failure here
+      # blocks the export, so we never ship an APK with broken combat math
+      # or broken touch input.
+      - name: Run headless tests
+        run: |
+          set -euo pipefail
+          ~/godot/godot --headless --script res://tests/run_all.gd 2>&1 | tee test.log
+          if grep -q "test(s) passed" test.log && ! grep -q "Failures" test.log; then
+            echo "--- All tests passed ---"
+          else
+            echo "::error::Tests failed — see test.log artifact"
+            exit 1
+          fi
+
+      # ── Export APK (verbose, no swallowed exit code) ───────────────────
+      - name: Export Android Debug APK
+        run: |
+          set -euo pipefail
+          mkdir -p exports
+          ~/godot/godot --headless --verbose \
+            --export-debug "${EXPORT_PRESET}" \
+            "exports/${ARTIFACT_NAME}" 2>&1 | tee export.log
+          echo "--- godot pipe status: ${PIPESTATUS[*]} ---"
+
+      # ── Verify & report (always runs even on prior failure) ────────────
+      - name: List exports directory
+        if: always()
+        run: |
+          echo "--- exports/ ---"
+          ls -la exports/ || true
+          echo "--- last 50 lines of export.log ---"
+          tail -50 export.log 2>/dev/null || echo "(no export.log)"
+
+      - name: Verify APK
+        run: |
+          set -euo pipefail
+          if [ ! -f "exports/${ARTIFACT_NAME}" ]; then
+            echo "::error::APK was not produced at exports/${ARTIFACT_NAME}"
+            exit 1
+          fi
+          echo "--- size ---"
+          du -h "exports/${ARTIFACT_NAME}"
+          echo "--- SHA256 ---"
+          sha256sum "exports/${ARTIFACT_NAME}"
+
+      # ── Upload as build artifact (downloadable from Actions tab) ───────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxel-dungeon-debug-${{ github.sha }}
+          path: exports/${{ env.ARTIFACT_NAME }}
+          retention-days: 30
+          if-no-files-found: error
+
+      # ── Always upload logs so failures are debuggable ──────────────────
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.sha }}
+          path: |
+            import-1.log
+            import-2.log
+            export.log
+            test.log
+          retention-days: 14
+          if-no-files-found: ignore

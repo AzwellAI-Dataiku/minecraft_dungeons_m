@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3 uid="uid://cfirebrun01"]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.gd" id="1_itemdata"]
+
+[resource]
+script       = ExtResource("1_itemdata")
+id           = &"fireball_rune"
+display_name = "Fireball Rune"
+description  = "Hurls a scorching fireball."
+type         = 3
+rarity       = 1
+power_level  = 8
+base_damage  = 22.0
+base_defense = 0.0
+cooldown     = 8.0
+mesh_color   = Color(1.0, 0.45, 0.1, 1)
