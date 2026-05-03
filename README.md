@@ -92,6 +92,26 @@ adb install -r exports/voxel_dungeon_debug.apk
 adb shell am start -n com.example.voxeldungeon/com.godot.game.GodotApp
 ```
 
+### Debug build via GitHub Actions (no local toolchain needed)
+
+A workflow at `.github/workflows/android-build.yml` runs on every push to
+`main` or `claude/**` branches and can be triggered manually from the
+*Actions* tab (**workflow_dispatch**).
+
+It does the following on a fresh `ubuntu-latest` runner:
+1. Installs JDK 17, Android SDK platform 34, build-tools 34, NDK 23.2.
+2. Downloads matching Godot binary + Android export templates (cached).
+3. Generates a debug keystore.
+4. Unzips the Gradle build template into `res://android/build`.
+5. Runs `godot --headless --import` then `godot --headless --export-debug`.
+6. Uploads `voxel_dungeon_debug.apk` as a downloadable artifact for **30 days**.
+
+To download the APK after a green run:
+- Open the repository on GitHub → *Actions* tab → click the latest
+  **Android Debug Build** run → *Artifacts* section → click
+  `voxel-dungeon-debug-<sha>` → unzip the downloaded archive →
+  `adb install -r voxel_dungeon_debug.apk`.
+
 ### Release build (signed AAB)
 
 1. Generate a release keystore (one-time, **store the password safely**):
