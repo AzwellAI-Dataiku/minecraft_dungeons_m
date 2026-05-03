@@ -7,6 +7,7 @@ enum Type { PHYSICAL, MAGIC, FIRE, LIGHTNING, POISON }
 @export var type: Type = Type.PHYSICAL
 @export var is_crit: bool = false
 @export var knockback_force: float = 4.0
+@export var attacker_pl: int = 0
 
 # Set at runtime — not serialised
 var knockback_dir: Vector3 = Vector3.ZERO

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.gd" id="1_itemdata"]
+
+[resource]
+script         = ExtResource("1_itemdata")
+id             = &"artifact_tnt"
+display_name   = "Fuse Charge"
+description    = "Throws a fused charge that detonates after a short delay."
+type           = 3
+rarity         = 1
+power_level    = 5
+base_damage    = 0.0
+base_defense   = 0.0
+cooldown       = 8.0
+artifact_id    = &"tnt_charge"
+mesh_color     = Color(1.0, 0.3, 0.15, 1)
+slots          = []

@@ -168,6 +168,7 @@ func _do_attack() -> void:
 		var pkt := DamagePacket.make(data.attack_damage, self)
 		pkt.knockback_dir   = _dir_to_player()
 		pkt.knockback_force = data.knockback_force
+		pkt.attacker_pl     = data.power_level + GameManager.get_difficulty_pl_bonus()
 		_hitbox.activate(pkt)
 
 func _shoot() -> void:
@@ -179,6 +180,8 @@ func _shoot() -> void:
 	proj.direction       = _dir_to_player()
 	proj.source          = self
 	proj.damage          = data.attack_damage
+	if "attacker_pl" in proj:
+		proj.attacker_pl = data.power_level + GameManager.get_difficulty_pl_bonus()
 
 func _dir_to_player() -> Vector3:
 	if _player == null: return Vector3.FORWARD
@@ -190,6 +193,8 @@ func _dir_to_player() -> Vector3:
 
 func _on_damage(packet: DamagePacket) -> void:
 	if _state == State.DEAD: return
+	var defender_pl: int = (data.power_level if data else 0) + GameManager.get_difficulty_pl_bonus()
+	packet.amount = DamageMath.scale(packet.amount, packet.attacker_pl, defender_pl)
 	hp = maxf(hp - packet.amount, 0.0)
 	EventBus.enemy_damaged.emit(self, packet.amount, packet.source)
 	_flash_hit()

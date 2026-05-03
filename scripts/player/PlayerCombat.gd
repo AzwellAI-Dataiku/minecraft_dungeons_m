@@ -81,6 +81,7 @@ func _start_swing() -> void:
 	var packet := DamagePacket.make(MELEE_DAMAGE[_combo_idx], _player)
 	packet.knockback_dir   = _player.get_facing_direction()
 	packet.knockback_force = 3.0
+	packet.attacker_pl     = Inventory.get_power_level()
 	EnchantmentDB.apply_outgoing_damage(packet)
 	_melee_hitbox.activate(packet)
 	_state       = State.SWINGING
@@ -133,6 +134,7 @@ func _try_ranged() -> void:
 
 func _shoot() -> void:
 	var pkt := DamagePacket.make(RANGED_DAMAGE, _player)
+	pkt.attacker_pl = Inventory.get_power_level()
 	EnchantmentDB.apply_outgoing_damage(pkt)
 	var proj := projectile_scene.instantiate() as Projectile
 	_player.get_parent().add_child(proj)

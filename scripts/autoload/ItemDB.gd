@@ -9,6 +9,9 @@ const _ITEMS := [
 	preload("res://data/items/oak_bow.tres"),
 	preload("res://data/items/guard_armor.tres"),
 	preload("res://data/items/fireball_rune.tres"),
+	preload("res://data/items/artifact_tnt.tres"),
+	preload("res://data/items/artifact_harvester.tres"),
+	preload("res://data/items/artifact_shockwave.tres"),
 ]
 
 var _by_id: Dictionary = {}

@@ -10,16 +10,39 @@ extends CanvasLayer
 @onready var pause_button:  Button      = $TopBar/PauseButton
 @onready var pause_menu:    Control     = $PauseMenu
 
+var _artifact_buttons: Dictionary = {}
+
 func _ready() -> void:
 	EventBus.player_health_changed.connect(_on_health)
 	EventBus.player_level_changed.connect(_on_level)
 	EventBus.item_picked_up.connect(_on_item_changed)
 	EventBus.item_salvaged.connect(_on_item_changed)
 	EventBus.item_equipped.connect(_on_item_changed)
+	EventBus.artifact_cooldown_changed.connect(_on_artifact_cd)
 	inv_button.pressed.connect(_on_inv_pressed)
 	pause_button.pressed.connect(_on_pause_pressed)
+	_artifact_buttons = {
+		"artifact_1": get_node_or_null("BtnArtifact1"),
+		"artifact_2": get_node_or_null("BtnArtifact2"),
+		"artifact_3": get_node_or_null("BtnArtifact3"),
+	}
 	_refresh_emeralds()
 	_refresh_level()
+
+func _on_artifact_cd(slot: String, remaining: float, ratio: float) -> void:
+	var btn: Button = _artifact_buttons.get(slot)
+	if btn == null:
+		return
+	if ratio > 0.001:
+		btn.modulate.a = 0.35
+		btn.text = "%.0f" % ceilf(remaining)
+	else:
+		btn.modulate.a = 1.0
+		var idx := str(slot).rsplit("_", true, 1)[1]
+		match idx:
+			"1": btn.text = "①"
+			"2": btn.text = "②"
+			"3": btn.text = "③"
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_inventory"):

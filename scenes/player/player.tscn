@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://cplayer001"]
+[gd_scene load_steps=13 format=3 uid="uid://cplayer001"]
 
 [ext_resource type="Script" path="res://scripts/player/Player.gd"       id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/PlayerCombat.gd" id="2_combat"]
 [ext_resource type="Script" path="res://scripts/combat/Hitbox.gd"       id="3_hitbox"]
 [ext_resource type="Script" path="res://scripts/combat/Hurtbox.gd"      id="4_hurtbox"]
 [ext_resource type="PackedScene" path="res://scenes/player/projectile_arrow.tscn" id="5_arrow"]
+[ext_resource type="Script" path="res://scripts/player/PlayerArtifacts.gd" id="6_artifacts"]
 
 [sub_resource type="CapsuleMesh" id="BodyMesh"]
 radius = 0.4
@@ -72,3 +73,6 @@ shape    = SubResource("HurtShape")
 [node name="PlayerCombat" type="Node" parent="."]
 script = ExtResource("2_combat")
 projectile_scene = ExtResource("5_arrow")
+
+[node name="PlayerArtifacts" type="Node" parent="."]
+script = ExtResource("6_artifacts")

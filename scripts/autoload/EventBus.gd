@@ -32,3 +32,6 @@ signal save_failed(reason: String)
 
 signal ui_toast(message: String, duration: float)
 signal camera_shake(intensity: float)
+
+signal artifact_activated(slot: String, item: Resource)
+signal artifact_cooldown_changed(slot: String, remaining: float, ratio: float)

@@ -25,6 +25,7 @@ ItemDB="*res://scripts/autoload/ItemDB.gd"
 EnchantmentDB="*res://scripts/autoload/EnchantmentDB.gd"
 Inventory="*res://scripts/items/Inventory.gd"
 PlayerProgression="*res://scripts/autoload/PlayerProgression.gd"
+ArtifactEffects="*res://scripts/items/ArtifactEffects.gd"
 
 [display]
 

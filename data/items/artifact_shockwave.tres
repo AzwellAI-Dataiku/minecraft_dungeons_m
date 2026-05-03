@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemData.gd" id="1_itemdata"]
+
+[resource]
+script         = ExtResource("1_itemdata")
+id             = &"artifact_shockwave"
+display_name   = "Quake Stomp"
+description    = "Slams the ground, knocking nearby enemies back."
+type           = 3
+rarity         = 0
+power_level    = 5
+base_damage    = 0.0
+base_defense   = 0.0
+cooldown       = 5.0
+artifact_id    = &"shockwave"
+mesh_color     = Color(0.95, 0.85, 0.4, 1)
+slots          = []

@@ -13,6 +13,7 @@ enum Rarity { COMMON, RARE, UNIQUE }
 @export var base_damage:  float      = 10.0  # weapon DPS reference
 @export var base_defense: float      = 0.0   # armor damage-reduction fraction 0–1
 @export var cooldown:     float      = 0.0   # artifact cooldown seconds
+@export var artifact_id:  StringName = &""  # registry key into ArtifactEffects
 @export var mesh_color:   Color      = Color(0.8, 0.8, 0.8, 1)
 
 ## Per-instance enchantment slots. Empty on the .tres template; populated by

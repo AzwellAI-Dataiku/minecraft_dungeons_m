@@ -142,6 +142,21 @@ jobs:
           echo "--- .godot/imported/ contents (first 30) ---"
           ls -la .godot/imported 2>/dev/null | head -30 || echo "(no .godot/imported directory)"
 
+      # ── Run unit tests (headless) ───────────────────────────────────────
+      # Phase 0/1 logic + Phase 9.1 input regression tests. Failure here
+      # blocks the export, so we never ship an APK with broken combat math
+      # or broken touch input.
+      - name: Run headless tests
+        run: |
+          set -euo pipefail
+          ~/godot/godot --headless --script res://tests/run_all.gd 2>&1 | tee test.log
+          if grep -q "test(s) passed" test.log && ! grep -q "Failures" test.log; then
+            echo "--- All tests passed ---"
+          else
+            echo "::error::Tests failed — see test.log artifact"
+            exit 1
+          fi
+
       # ── Export APK (verbose, no swallowed exit code) ───────────────────
       - name: Export Android Debug APK
         run: |
@@ -192,5 +207,6 @@ jobs:
             import-1.log
             import-2.log
             export.log
+            test.log
           retention-days: 14
           if-no-files-found: ignore

@@ -9,8 +9,12 @@ const SCENE_DUNGEON   := "res://scenes/dungeons/dungeon.tscn"
 var current_state:     State        = State.BOOT
 var active_mission:    MissionData  = null
 var active_mission_id: StringName   = &""
+var active_difficulty: int          = 1
 var run_seed:          int          = 0
 var run_stats:         Dictionary   = _empty_stats()
+
+func get_difficulty_pl_bonus() -> int:
+	return DamageMath.difficulty_pl_bonus(active_difficulty)
 
 func _ready() -> void:
 	EventBus.scene_change_requested.connect(_on_scene_change_requested)
@@ -36,6 +40,7 @@ func start_mission_data(mission: MissionData) -> void:
 		return
 	active_mission     = mission
 	active_mission_id  = mission.id
+	active_difficulty  = mission.difficulty
 	run_seed           = int(Time.get_unix_time_from_system()) ^ mission.seed_offset
 	run_stats          = _empty_stats()
 	EventBus.mission_started.emit(mission.id)

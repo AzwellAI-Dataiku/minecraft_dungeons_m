@@ -44,6 +44,7 @@ func _apply_movement(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, FRICTION * delta)
 
 func _on_damage(packet: DamagePacket) -> void:
+	packet.amount = DamageMath.scale(packet.amount, packet.attacker_pl, Inventory.get_power_level())
 	EnchantmentDB.apply_incoming_damage(packet)
 	health = maxf(health - packet.amount, 0.0)
 	EventBus.player_health_changed.emit(health, max_health)
