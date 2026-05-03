@@ -119,7 +119,15 @@ jobs:
       - name: Disable gradle_build for CI export
         run: |
           set -euo pipefail
-          sed -i 's|gradle_build/use_gradle_build=true|gradle_build/use_gradle_build=false|g' export_presets.cfg
+          # min_sdk / target_sdk overrides are only valid when
+          # use_gradle_build is true; clear them too or Godot will
+          # refuse to export with "Min/Target SDK can only be
+          # overridden when Use Gradle Build is enabled".
+          sed -i \
+            -e 's|gradle_build/use_gradle_build=true|gradle_build/use_gradle_build=false|g' \
+            -e 's|gradle_build/min_sdk="28"|gradle_build/min_sdk=""|g' \
+            -e 's|gradle_build/target_sdk="34"|gradle_build/target_sdk=""|g' \
+            export_presets.cfg
           echo "--- gradle_build settings now: ---"
           grep gradle_build export_presets.cfg || true
 
